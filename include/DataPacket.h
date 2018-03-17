@@ -32,6 +32,11 @@ bool contains(std::string str, std::string substr)
 	return str.find(substr) != std::string::npos;
 }
 
+std::string shortenUserHash(std::string loginHash)
+{
+	return "@{" + loginHash.substr(0, 6) + "}" ;
+}
+
 void sendString(void* socket, std::string s, bool sendMore)
 {
 	zmq_msg_t zmq_s;

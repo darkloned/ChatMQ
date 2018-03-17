@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
 			{
 				std::string response;
 
-				std::cout << "\nThis will ERASE your account and PROHIBIT any further access to current chats." << std::endl;
+				std::cout << "\nThis will erase all your chat data PERMANENTLY." << std::endl;
 				std::cout << "Do you really wish to proceed? [yes/No]: ";
 				std::getline(std::cin, response);
 
@@ -300,7 +300,7 @@ int main(int argc, char* argv[])
 			}
 
 			requestData.loginHash = sha256(username);
-			requestData.passwordHash = sha256(passwordHash);
+			requestData.passwordHash = passwordHash;
 		}
 		else if (requestData.action == ":help")
 		{
@@ -352,14 +352,43 @@ int main(int argc, char* argv[])
 		}
 		else if (requestData.action == ":logout")
 		{
-			std::cout << "Bye, @" << username << "!" << std::endl;
+			if (reply == "OK")
+			{
+				std::cout << "Bye, @" << username << "!" << std::endl;
 
-			username = "";
-			passwordHash = "";
+				username = "";
+				passwordHash = "";
+			}
+			else
+			{
+				std::cout << reply << std::endl;
+			}
+			
+		}
+		else if (requestData.action == ":delete")
+		{
+			if (reply == "OK")
+			{
+				username = "";
+				passwordHash = "";
+
+				std::cout << "Your account has been deleted." << std::endl;
+			}
+			else
+			{
+				std::cout << reply << std::endl;
+			}
 		}
 		else if (requestData.action == ":quit") // user was logged out by server
 		{
-			std::cout << "Bye, @" << username << "!\n" << std::endl;
+			if (reply == "OK")
+			{
+				std::cout << "Bye, @" << username << "!\n" << std::endl;
+			}
+			else
+			{
+				std::cout << reply << "\n" << std::endl;
+			}
 
 			return 0;
 		}

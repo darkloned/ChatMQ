@@ -2,7 +2,7 @@
  * Created by darkloned.
  * Coursework:
  *  Create secure ZeroMQ IM chat with
- 	authorization and dialog history.
+ *	authorization and dialog history.
  *
  * See log files for usage example.
  */
@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 
 	zmq_bind(socket, "tcp://*:4040");
 
-	std::cout << "ChatMQ Server v0.1 by @darkloned started." << std::endl << std::endl;
+	std::cout << "ChatMQ Server v0.1 by @darkloned started.\n" << std::endl;
 
 	mkdir("data", RWXUSR); // accounts data
 
@@ -29,11 +29,20 @@ int main(int argc, char* argv[])
 		// Well, of course I don't need switch-case for strings, right, C++?
 		if (requestData.action == ":create")
 		{
-			reply = createNewAccount(requestData);
+			reply = createAccount(requestData);
 		}
 		else if (requestData.action == ":login")
 		{
-			reply = authorize(requestData);
+			reply = loginUser(requestData);
+		}
+		else if (requestData.action == ":logout" ||
+				 requestData.action == ":quit"    )
+		{
+			reply = logoutUser(requestData);
+		}
+		else if (requestData.action == ":delete")
+		{
+			reply = deleteAccount(requestData);
 		}
 
 		sendString(socket, reply, false);
