@@ -8,7 +8,6 @@
  */
 
 #include "Server.h"
-#include "DataPacket.h"
 
 int main(int argc, char* argv[])
 {
@@ -30,11 +29,11 @@ int main(int argc, char* argv[])
 		// Well, of course I don't need switch-case for strings, right, C++?
 		if (requestData.action == ":create")
 		{
-			reply = createNewAccount(requestData.loginHash, requestData.passwordHash);
+			reply = createNewAccount(requestData);
 		}
 		else if (requestData.action == ":login")
 		{
-			reply = authorize(requestData.loginHash, requestData.passwordHash);
+			reply = authorize(requestData);
 		}
 
 		sendString(socket, reply, false);

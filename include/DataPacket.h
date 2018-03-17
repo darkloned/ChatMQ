@@ -10,13 +10,26 @@
 
 typedef struct DataPacket
 {
-	std::string action, loginHash, passwordHash, recipientHash, userStatus;
+	std::string action, loginHash, passwordHash, recipientHash, userStatus, time;
 
 } DataPacket;
 
 bool isEmpty(std::string s)
 {
 	return s.size() == 0;
+}
+
+void trim(std::string& s)
+{
+	const std::string INVISIBLE = " \f\n\r\t\v";
+	std::string sRightTrimmed = s.erase(s.find_last_not_of(INVISIBLE) + 1);
+
+	s = sRightTrimmed.erase(0, sRightTrimmed.find_first_not_of(INVISIBLE));
+}
+
+bool contains(std::string str, std::string substr)
+{
+	return str.find(substr) != std::string::npos;
 }
 
 void sendString(void* socket, std::string s, bool sendMore)
@@ -51,7 +64,8 @@ void sendDataPacket(void* socket, DataPacket requestData)
 	sendString(socket, requestData.loginHash, true);
 	sendString(socket, requestData.passwordHash, true);
 	sendString(socket, requestData.recipientHash, true);
-	sendString(socket, requestData.userStatus, false);
+	sendString(socket, requestData.userStatus, true);
+	sendString(socket, requestData.time, false);
 }
 
 DataPacket receiveDataPacket(void* socket)
@@ -63,6 +77,7 @@ DataPacket receiveDataPacket(void* socket)
 	dp.passwordHash  = receiveString(socket);
 	dp.recipientHash = receiveString(socket);
 	dp.userStatus 	 = receiveString(socket);
+	dp.time			 = receiveString(socket);
 
 	return dp;
 }

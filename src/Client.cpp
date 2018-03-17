@@ -10,9 +10,12 @@
 // TODO: color lines
 
 #include <iostream>
-#include <unistd.h>
 #include <cctype>
+#include <chrono>
+#include <ctime>
 #include <algorithm>
+#include <iomanip>
+#include <unistd.h>
 #include <termios.h>
 
 #include "sha256.h"
@@ -28,14 +31,6 @@ void printHelp()
 	std::cout << ":connect\t  - open chat with selected user" << std::endl;
 	std::cout << ":quit\t\t  - exit application" << std::endl;
 	std::cout << ":help\t\t  - print this manual\n" << std::endl;
-}
-
-void trim(std::string& s)
-{
-	const std::string INVISIBLE = " \f\n\r\t\v";
-	std::string sRightTrimmed = s.erase(s.find_last_not_of(INVISIBLE) + 1);
-
-	s = sRightTrimmed.erase(0, sRightTrimmed.find_first_not_of(INVISIBLE));
 }
 
 // check if username contains NOT only [a-z, A-Z, 0-9]
@@ -99,6 +94,17 @@ void getpass(std::string& password)
 	}
 
 	std::cout << std::endl;
+}
+
+std::string getCurrentTime()
+{
+	auto chronoTime = std::chrono::system_clock::now();
+	std::time_t currentTime = std::chrono::system_clock::to_time_t(chronoTime);
+	std::stringstream ss;
+
+	ss << std::put_time(std::localtime(&currentTime), "%d-%m-%Y at %H:%M");
+
+	return ss.str();
 }
 
 int main(int argc, char* argv[])
@@ -176,6 +182,8 @@ int main(int argc, char* argv[])
 						break;
 					}
 				}
+
+				requestData.time = getCurrentTime();
 			}
 		}
 		else if (requestData.action == ":login")
@@ -197,6 +205,7 @@ int main(int argc, char* argv[])
 
 				requestData.loginHash = sha256(login);
 				requestData.passwordHash = sha256(password);
+				requestData.time = getCurrentTime();
 			}
 		}
 		else if (requestData.action == ":status")
@@ -326,12 +335,20 @@ int main(int argc, char* argv[])
 				std::cout << reply << std::endl;
 			}
 		}
-		else if (requestData.action == "login")
+		else if (requestData.action == ":login")
 		{
-			username = login;
-			passwordHash = requestData.passwordHash;
+			if (contains(reply, "-")) // reply is last login time
+			{
+				username = login;
+				passwordHash = requestData.passwordHash;
 
-			std::cout << "Hello, @" << username << "!" << std::endl; // TODO: + last login?
+				std::cout << "Hello, @" << username << "!" << std::endl;
+				std::cout << "Last login: " << reply << std::endl;
+			}
+			else
+			{
+				std::cout << reply << std::endl;
+			}
 		}
 		else if (requestData.action == ":logout")
 		{
