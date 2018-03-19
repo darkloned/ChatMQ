@@ -5,6 +5,7 @@
 #include <fstream>
 #include <limits>
 #include <cstring>
+#include "dirent.h"
 #include <sys/stat.h>
 
 #include "DataPacket.h"
@@ -36,7 +37,12 @@ std::string getFileLine(std::fstream& file, int number)
     return line;
 }
 
-enum DataLine { PASSWORD_HASH = 1, LAST_LOGIN_TIME, LOGIN_ATTEMPTS_LEFT, ONLINE_STATUS };
+enum DataLine { PASSWORD_HASH = 1,
+				LAST_LOGIN_TIME, 
+				LOGIN_ATTEMPTS_LEFT,
+				ONLINE_STATUS,
+				USER_STATUS,
+				CURRENT_RECIPIENT };
 
 std::string createAccount(DataPacket requestData)
 {
@@ -51,6 +57,8 @@ std::string createAccount(DataPacket requestData)
 	}
 	else
 	{
+		mkdir(("data/" + requestData.loginHash + "/dialogs").c_str(), RWXUSR);
+
 		std::ofstream userDataOut;
 		std::string userDataFilePath = "data/" + requestData.loginHash + "/user.dat";
 
@@ -60,9 +68,11 @@ std::string createAccount(DataPacket requestData)
 		userDataOut << requestData.time 		<< std::endl; // setFileLine(userDataFilePath, LAST_LOGIN_TIME, requestData.time);
 		userDataOut << "3" 						<< std::endl; // setFileLine(userDataFilePath, LOGIN_ATTEMPTS_LEFT, "3");
 		userDataOut << "online"					<< std::endl; // setFileLine(userDataFilePath, LOGIN_STATUS, "online");
+		userDataOut << ""						<< std::endl; // setFileLine(userDataFilePath, USER_STATUS, "");
+		userDataOut << ""						<< std::endl; // setFileLine(userDataFilePath, CURRENT_RECIPIENT, "");
 
-		std::cout << "User account " << shortenUserHash(requestData.loginHash) << " created." << std::endl;
-		std::cout << "User " << shortenUserHash(requestData.loginHash) << " logged in." << std::endl;
+		std::cout << "User account " << shortenHash(requestData.loginHash) << " created." << std::endl;
+		std::cout << "User " << shortenHash(requestData.loginHash) << " logged in." << std::endl;
 
 		userDataOut.close();
 
@@ -90,7 +100,7 @@ std::string loginUser(DataPacket requestData)
 		setFileLine(userDataFilePath, LOGIN_ATTEMPTS_LEFT, "3");
 		setFileLine(userDataFilePath, ONLINE_STATUS, "online");
 
-		std::cout << "User " << shortenUserHash(requestData.loginHash) << " logged in." << std::endl;
+		std::cout << "User " << shortenHash(requestData.loginHash) << " logged in." << std::endl;
 
 		return lastLoginTime;
 	}
@@ -102,7 +112,7 @@ std::string loginUser(DataPacket requestData)
 
 			if (attemptsLeft == 0)
 			{
-				std::cout << "User account " << shortenUserHash(requestData.loginHash) << " suspended." << std::endl;
+				std::cout << "User account " << shortenHash(requestData.loginHash) << " suspended." << std::endl;
 
 				return "Account has been suspended.\nPlease, contact an administrator.";
 			}
@@ -116,6 +126,83 @@ std::string loginUser(DataPacket requestData)
 	}
 }
 
+std::string setUserStatus(DataPacket requestData)
+{
+	std::string userDataFilePath = "data/" + requestData.loginHash + "/user.dat";
+	std::fstream userData(userDataFilePath);
+
+	if (requestData.passwordHash == getFileLine(userData, PASSWORD_HASH))
+	{
+		setFileLine(userDataFilePath, USER_STATUS, requestData.userStatus);
+
+		std::cout << "User " << shortenHash(requestData.loginHash) << " set new status." << std::endl;
+
+		return "OK";
+	}
+	else
+	{
+		return "Authorization error. Action blocked.";
+	}
+}
+
+std::string connectRecipient(DataPacket requestData)
+{
+	if (opendir(("data/" + requestData.recipientHash).c_str()) == NULL)
+	{
+		return "No such user found.\nPlease, check username for mistakes and try again.";
+	}
+	else
+	{
+		std::string userDataFilePath = "data/" + requestData.loginHash + "/user.dat";
+		std::string recipientDataFilePath = "data/" + requestData.recipientHash + "/user.dat";
+
+		std::fstream userData(userDataFilePath);
+		std::fstream recipientData(recipientDataFilePath);
+
+		if (requestData.passwordHash == getFileLine(userData, PASSWORD_HASH))
+		{
+			std::fstream dialogWithUser("data/" + requestData.recipientHash + "/dialogs/" + requestData.loginHash, std::ios::out);
+			std::fstream dialogWithRecipient("data/" + requestData.loginHash + "/dialogs/" + requestData.recipientHash, std::ios::out);
+
+			setFileLine(userDataFilePath, CURRENT_RECIPIENT, requestData.recipientHash);
+
+			std::cout << "User " << shortenHash(requestData.loginHash) << " connected to " << shortenHash(requestData.recipientHash) << "." << std::endl;
+
+			std::string reply = getFileLine(recipientData, USER_STATUS);
+
+			if (!isEmpty(reply))
+			{
+				reply = " ~ " + reply;
+			}
+
+			return reply + "\nCurrent status: " + getFileLine(recipientData, ONLINE_STATUS);
+		}
+		else
+		{
+			return "Authorization error. Action blocked.";
+		}
+	}
+}
+
+std::string disconnectRecipient(DataPacket requestData)
+{
+	std::string userDataFilePath = "data/" + requestData.loginHash + "/user.dat";
+	std::fstream userData(userDataFilePath);
+
+	if (requestData.passwordHash == getFileLine(userData, PASSWORD_HASH))
+	{
+		setFileLine(userDataFilePath, CURRENT_RECIPIENT, "");
+
+		std::cout << "User " << shortenHash(requestData.loginHash) << " disconnected from " << shortenHash(requestData.recipientHash) << "." << std::endl;
+
+		return "OK";
+	}
+	else
+	{
+		return "Authorization error. Action blocked.";
+	}
+}
+
 std::string logoutUser(DataPacket requestData)
 {
 	std::string userDataFilePath = "data/" + requestData.loginHash + "/user.dat";
@@ -125,7 +212,7 @@ std::string logoutUser(DataPacket requestData)
 	{
 		setFileLine(userDataFilePath, ONLINE_STATUS, "offline");
 
-		std::cout << "User " << shortenUserHash(requestData.loginHash) << " logged out." << std::endl;
+		std::cout << "User " << shortenHash(requestData.loginHash) << " logged out." << std::endl;
 
 		return "OK";
 	}
@@ -144,8 +231,8 @@ std::string deleteAccount(DataPacket requestData)
 	{
 		sysbash("rm -r", userDataFolder);
 
-		std::cout << "User " << shortenUserHash(requestData.loginHash) << " logged out." << std::endl;
-		std::cout << "User account " << shortenUserHash(requestData.loginHash) << " deleted." << std::endl;
+		std::cout << "User " << shortenHash(requestData.loginHash) << " logged out." << std::endl;
+		std::cout << "User account " << shortenHash(requestData.loginHash) << " deleted." << std::endl;
 
 		return "OK";
 	}

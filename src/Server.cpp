@@ -35,6 +35,18 @@ int main(int argc, char* argv[])
 		{
 			reply = loginUser(requestData);
 		}
+		else if (requestData.action == ":status")
+		{
+			reply = setUserStatus(requestData);
+		}
+		else if (requestData.action == ":connect")
+		{
+			reply = connectRecipient(requestData);
+		}
+		else if (requestData.action == ":disconnect")
+		{
+			reply = disconnectRecipient(requestData);
+		}
 		else if (requestData.action == ":logout" ||
 				 requestData.action == ":quit"    )
 		{

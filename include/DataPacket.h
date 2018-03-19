@@ -3,8 +3,6 @@
 
 #include "zmq.h"
 
-// enum Action { CREATE, LOGIN, STATUS, CONNECT, LOGOUT, DELETE, QUIT };
-
 // TODO: make class DataPacket with method 'send()'
 // TODO: http://zeromq.org/build:encryption
 
@@ -32,7 +30,7 @@ bool contains(std::string str, std::string substr)
 	return str.find(substr) != std::string::npos;
 }
 
-std::string shortenUserHash(std::string loginHash)
+std::string shortenHash(std::string loginHash)
 {
 	return "@{" + loginHash.substr(0, 6) + "}" ;
 }

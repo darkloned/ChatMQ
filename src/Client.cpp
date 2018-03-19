@@ -25,12 +25,12 @@
 void printHelp()
 {
 	std::cout << std::endl;
-	std::cout << ":create ~ :delete - create or delete account" << std::endl;
-	std::cout << ":login  ~ :logout - authorization management" << std::endl;
-	std::cout << ":status\t\t  - set user status (i.e. \"Hello, World!\")" << std::endl;
-	std::cout << ":connect\t  - open chat with selected user" << std::endl;
-	std::cout << ":quit\t\t  - exit application" << std::endl;
-	std::cout << ":help\t\t  - print this manual\n" << std::endl;
+	std::cout << ":create  ~ :delete      - create or delete account" << std::endl;
+	std::cout << ":login   ~ :logout      - authorization management" << std::endl;
+	std::cout << ":connect ~ :disconnect  - open chat with selected user" << std::endl;
+	std::cout << ":status\t\t\t- set user status (i.e. \"Hello, World!\")" << std::endl;
+	std::cout << ":quit\t\t\t- exit application" << std::endl;
+	std::cout << ":help\t\t\t- print this manual\n" << std::endl;
 }
 
 // check if username contains NOT only [a-z, A-Z, 0-9]
@@ -117,7 +117,8 @@ int main(int argc, char* argv[])
 	std::cout << "Welcome to ChatMQ v0.1 by @darkloned." << std::endl;
 	printHelp();
 
-	std::string username = "", passwordHash; // current logged in user
+	std::string username  = "", passwordHash; // current logged in user
+	std::string recipient = "";
 
 	for (;;) 
 	{
@@ -233,13 +234,32 @@ int main(int argc, char* argv[])
 
 				continue; 
 			}
+			else if (!isEmpty(recipient))
+			{
+				std::cout << "\nYou're connected already.\nDisconnect first to choose another user." << std::endl;
+
+				continue;
+			}
 			else
 			{
-				std::string recipient;
-
 				std::cout << "\nEnter recipient username: @";
 				std::getline(std::cin, recipient);
 
+				requestData.loginHash = sha256(username);
+				requestData.passwordHash = passwordHash;
+				requestData.recipientHash = sha256(recipient);
+			}
+		}
+		else if (requestData.action == ":disconnect")
+		{
+			if (isEmpty(recipient))
+			{
+				std::cout << "\nYou are not connected to anyone.\n" << std::endl;
+
+				continue;
+			}
+			else
+			{
 				requestData.loginHash = sha256(username);
 				requestData.passwordHash = passwordHash;
 				requestData.recipientHash = sha256(recipient);
@@ -321,6 +341,7 @@ int main(int argc, char* argv[])
 
 		std::string reply = receiveServerReply(socket);
 
+		// Here we go again...
 		if (requestData.action == ":create")
 		{
 			if (reply == "OK")
@@ -344,6 +365,43 @@ int main(int argc, char* argv[])
 
 				std::cout << "Hello, @" << username << "!" << std::endl;
 				std::cout << "Last login: " << reply << std::endl;
+			}
+			else
+			{
+				std::cout << reply << std::endl;
+			}
+		}
+		else if (requestData.action == ":status")
+		{
+			if (reply == "OK")
+			{
+				std::cout << "New status has been set." << std::endl;
+			}
+			else
+			{
+				std::cout << reply << std::endl;
+			}
+		}
+		else if (requestData.action == ":connect")
+		{
+			if (contains(reply, "status")) // reply is recipient info
+			{
+				std::cout << "@" << recipient << reply << std::endl;
+			}
+			else
+			{
+				recipient = "";
+
+				std::cout << reply << std::endl;
+			}
+		}
+		else if (requestData.action == ":disconnect")
+		{
+			if (reply == "OK")
+			{
+				std::cout << "@" << recipient << " has been disconnected." << std::endl;
+
+				recipient = "";
 			}
 			else
 			{
