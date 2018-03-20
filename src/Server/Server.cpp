@@ -7,7 +7,7 @@
  * See log files for usage example.
  */
 
-#include "Server.h"
+#include "ServerFunctions.h"
 
 int main(int argc, char* argv[])
 {

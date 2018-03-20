@@ -1,10 +1,10 @@
 CC=g++
 CSTD=-std=c++14
 CFLAGS=-Wall -pedantic
-SERVERINC=-Iinclude
-CLIENTINC=-Isha256 -Iinclude
-SERVERSRC=src/Server.cpp
-CLIENTSRC=sha256/sha256.cpp src/Client.cpp
+SERVERINC=-Iinclude -Iinclude/Server
+CLIENTINC=-Isha256 -Iinclude -Iinclude/Client
+SERVERSRC=src/*.cpp src/Server/*
+CLIENTSRC=sha256/sha256.cpp src/*.cpp src/Client/*
 SERVEREXEC=bin/Server
 CLIENTEXEC=bin/Client
 
