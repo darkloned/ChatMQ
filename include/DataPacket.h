@@ -12,7 +12,7 @@
 
 typedef struct DataPacket
 {
-	std::string action, usernameHash, passwordHash, recipientHash, userStatus, time;
+	std::string action, usernameHash, passwordHash, recipientHash, userStatus, msg, time;
 
 } DataPacket;
 

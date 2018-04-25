@@ -33,6 +33,7 @@ void sendDataPacket(void* socket, DataPacket requestData)
 	sendString(socket, requestData.passwordHash, true);
 	sendString(socket, requestData.recipientHash, true);
 	sendString(socket, requestData.userStatus, true);
+	sendString(socket, requestData.msg, true);
 	sendString(socket, requestData.time, false);
 }
 
@@ -45,6 +46,7 @@ DataPacket receiveDataPacket(void* socket)
 	dp.passwordHash  = receiveString(socket);
 	dp.recipientHash = receiveString(socket);
 	dp.userStatus 	 = receiveString(socket);
+	dp.msg 	 		 = receiveString(socket);
 	dp.time			 = receiveString(socket);
 
 	return dp;

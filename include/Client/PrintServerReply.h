@@ -6,10 +6,10 @@
 #include "DataPacket.h"
 
 void replyCreatingAccount(std::string reply, DataPacket requestData, std::string& username, std::string& passwordHash);
-void replyDeletingAccount(std::string reply, std::string& username, std::string& passwordHash);
+void replyDeletingAccount(std::string reply, std::string& username, std::string& passwordHash, std::string& recipient);
 
 void replyLoggingUserIn(std::string reply, DataPacket requestData, std::string& username, std::string& passwordHash);
-void replyLoggingUserOut(std::string reply, std::string& username, std::string& passwordHash);
+void replyLoggingUserOut(std::string reply, std::string& username, std::string& passwordHash, std::string& recipient);
 
 void replySettingUserStatus(std::string reply);
 

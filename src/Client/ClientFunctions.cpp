@@ -115,7 +115,7 @@ bool connectRecipient(DataPacket& requestData, std::string username, std::string
 	}
 	else if (!isEmpty(recipient))
 	{
-		std::cout << "\nYou're connected already.\nDisconnect first to choose another user." << std::endl;
+		std::cout << "\nYou're connected already.\nDisconnect first to choose another user.\n" << std::endl;
 
 		return false;
 	}
@@ -132,6 +132,25 @@ bool connectRecipient(DataPacket& requestData, std::string username, std::string
 	}
 }
 
+void sendMessage(DataPacket& requestData, std::string username, std::string passwordHash, std::string recipient)
+{
+	requestData.action = ":send";
+	requestData.usernameHash = sha256(username);
+	requestData.passwordHash = passwordHash;
+	requestData.recipientHash = sha256(recipient);
+}
+
+std::string receiveMessage(void* socket, DataPacket requestData, std::string username, std::string passwordHash)
+{	
+	requestData.action = ":receive";
+	requestData.usernameHash = sha256(username);
+	requestData.passwordHash = passwordHash;
+
+	sendDataPacket(socket, requestData);
+
+	return receiveServerReply(socket);
+}
+
 bool disconnectRecipient(DataPacket& requestData, std::string username, std::string passwordHash, std::string recipient)
 {
 	if (isEmpty(recipient))
@@ -144,6 +163,7 @@ bool disconnectRecipient(DataPacket& requestData, std::string username, std::str
 	{
 		requestData.usernameHash = sha256(username);
 		requestData.passwordHash = passwordHash;
+		requestData.recipientHash = sha256(recipient);
 
 		return true;
 	}

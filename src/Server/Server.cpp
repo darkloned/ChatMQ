@@ -20,13 +20,14 @@ int main(int argc, char* argv[])
 
 	mkdir("data", RWXUSR); // accounts data
 
+	std::vector<DataPacket> messageStock;
+
 	for (;;) 
 	{
 		DataPacket requestData = receiveDataPacket(socket);
 
 		std::string reply;
 
-		// Well, of course I don't need switch-case for strings, right, C++?
 		if (requestData.action == ":create")
 		{
 			reply = createAccount(requestData);
@@ -42,6 +43,14 @@ int main(int argc, char* argv[])
 		else if (requestData.action == ":connect")
 		{
 			reply = connectRecipient(requestData);
+		}
+		else if (requestData.action == ":send")
+		{
+			reply = pushMessage(requestData, messageStock);
+		}
+		else if (requestData.action == ":receive")
+		{
+			reply = popMessage(requestData, messageStock);
 		}
 		else if (requestData.action == ":disconnect")
 		{

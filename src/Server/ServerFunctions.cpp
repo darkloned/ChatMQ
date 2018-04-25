@@ -117,8 +117,8 @@ std::string connectRecipient(DataPacket requestData)
 
 		if (requestData.passwordHash == getFileLine(userData, PASSWORD_HASH))
 		{
-			std::fstream dialogWithUser("data/" + requestData.recipientHash + "/dialogs/" + requestData.usernameHash, std::ios::out);
-			std::fstream dialogWithRecipient("data/" + requestData.usernameHash + "/dialogs/" + requestData.recipientHash, std::ios::out);
+			std::fstream dialogWithUser("data/" + requestData.recipientHash + "/dialogs/" + requestData.usernameHash);
+			//std::fstream dialogWithRecipient("data/" + requestData.usernameHash + "/dialogs/" + requestData.recipientHash);
 
 			setFileLine(userDataFilePath, CURRENT_RECIPIENT, requestData.recipientHash);
 
@@ -131,13 +131,65 @@ std::string connectRecipient(DataPacket requestData)
 				reply = " ~ " + reply;
 			}
 
-			return reply + "\nCurrent status: " + getFileLine(recipientData, ONLINE_STATUS);
+			reply += "\nCurrent status: " + getFileLine(recipientData, ONLINE_STATUS) + '\n';
+			reply += "Last conversation lines:";
+
+			std::ifstream dialog("data/" + requestData.recipientHash + "/dialogs/" + requestData.usernameHash);
+
+			int wcl = std::count(std::istreambuf_iterator<char>(dialog), std::istreambuf_iterator<char>(), '\n');
+
+			for (int i = std::max(1, wcl - 10); i <= wcl; ++i)
+			{
+				reply += '\n' + getFileLine(dialogWithUser, i);
+			}
+
+			return reply;
 		}
 		else
 		{
 			return "Authorization error. Action blocked.";
 		}
 	}
+}
+
+std::string pushMessage(DataPacket requestData, std::vector<DataPacket>& messageStock)
+{
+	std::string userDataFilePath = "data/" + requestData.usernameHash + "/user.dat";
+
+	std::fstream userData(userDataFilePath);
+
+	if (requestData.passwordHash == getFileLine(userData, PASSWORD_HASH))
+	{
+		messageStock.push_back(requestData);
+
+		std::system(("echo \"" + requestData.msg + "\" >> data/" + requestData.usernameHash + "/dialogs/" + requestData.recipientHash).c_str());
+		std::system(("echo \"" + requestData.msg + "\" >> data/" + requestData.recipientHash + "/dialogs/" + requestData.usernameHash).c_str());
+
+		return "OK";
+	}
+	else
+	{
+		return "Authorization error. Action blocked.";
+	}
+}
+
+std::string popMessage(DataPacket requestData, std::vector<DataPacket>& messageStock)
+{
+	std::string msg = "";
+
+	for (uint i = 0; i < messageStock.size(); ++i)
+	{
+		if (messageStock[i].recipientHash == requestData.usernameHash)
+		{
+			msg += messageStock[i].msg + "\n";
+
+			messageStock.erase(messageStock.begin() + i);
+
+			i--;
+		}
+	}
+
+	return msg;
 }
 
 std::string disconnectRecipient(DataPacket requestData)
@@ -167,6 +219,7 @@ std::string logoutUser(DataPacket requestData)
 	if (requestData.passwordHash == getFileLine(userData, PASSWORD_HASH))
 	{
 		setFileLine(userDataFilePath, ONLINE_STATUS, "offline");
+		setFileLine(userDataFilePath, CURRENT_RECIPIENT, "");
 
 		std::cout << "User " << shortenHash(requestData.usernameHash) << " logged out." << std::endl;
 

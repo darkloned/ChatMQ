@@ -73,7 +73,7 @@ void replyDisconnectingRecipient(std::string reply, std::string& recipient)
 	}
 }
 
-void replyLoggingUserOut(std::string reply, std::string& username, std::string& passwordHash)
+void replyLoggingUserOut(std::string reply, std::string& username, std::string& passwordHash, std::string& recipient)
 {
 	if (reply == "OK")
 	{
@@ -81,6 +81,7 @@ void replyLoggingUserOut(std::string reply, std::string& username, std::string& 
 
 		username = "";
 		passwordHash = "";
+		recipient = "";
 	}
 	else
 	{
@@ -88,12 +89,13 @@ void replyLoggingUserOut(std::string reply, std::string& username, std::string& 
 	}
 }
 
-void replyDeletingAccount(std::string reply, std::string& username, std::string& passwordHash)
+void replyDeletingAccount(std::string reply, std::string& username, std::string& passwordHash, std::string& recipient)
 {
 	if (reply == "OK")
 	{
 		username = "";
 		passwordHash = "";
+		recipient = "";
 
 		std::cout << "Your account has been deleted." << std::endl;
 	}

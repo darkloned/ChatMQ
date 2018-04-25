@@ -14,7 +14,7 @@ build_server_exec:
 	$(CC) $(CSTD) $(CFLAGS) $(SERVERINC) $(SERVERSRC) -o $(SERVEREXEC) -lzmq
 	
 build_client_exec:
-	$(CC) $(CSTD) $(CFLAGS) $(CLIENTINC) $(CLIENTSRC) -o $(CLIENTEXEC) -lzmq
+	$(CC) $(CSTD) $(CFLAGS) $(CLIENTINC) $(CLIENTSRC) -o $(CLIENTEXEC) -lzmq -lpthread
 
 clean:
 	rm -f bin/*

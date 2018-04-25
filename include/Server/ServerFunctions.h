@@ -1,6 +1,8 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include <vector>
+#include <algorithm>
 #include <memory.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -18,5 +20,8 @@ std::string setUserStatus(DataPacket requestData);
 
 std::string connectRecipient(DataPacket requestData);
 std::string disconnectRecipient(DataPacket requestData);
+
+std::string pushMessage(DataPacket requestData, std::vector<DataPacket>& messageStock);
+std::string popMessage(DataPacket requestData, std::vector<DataPacket>& messageStock);
 
 #endif 
